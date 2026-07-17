@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 420" preserveAspectRatio="none" aria-hidden="true">
+  <defs>
+    <filter id="soft" x="-10%" y="-10%" width="120%" height="120%">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="0.15"/>
+    </filter>
+  </defs>
+  <g fill="none" stroke="#CFA21B" stroke-linecap="round" stroke-linejoin="round" filter="url(#soft)">
+    <!-- Caminhos largos, como vias principais de mina -->
+    <path d="M -120 338 C 130 295 260 282 430 298 C 620 316 735 390 920 362 C 1110 334 1210 204 1405 188 C 1575 174 1730 230 2050 170" stroke-width="5.2" opacity="0.48"/>
+    <path d="M -80 94 C 180 116 332 182 550 166 C 770 150 860 50 1088 58 C 1318 66 1458 180 1630 162 C 1785 146 1870 72 2040 38" stroke-width="3.4" opacity="0.34"/>
+    <path d="M 985 428 C 1045 310 1135 248 1268 230 C 1370 216 1450 242 1548 236 C 1654 229 1748 178 2040 204" stroke-width="3" opacity="0.34"/>
+
+    <!-- Ramais secundários -->
+    <path d="M 436 298 C 508 250 578 235 675 238" stroke-width="2.4" opacity="0.34"/>
+    <path d="M 1328 192 C 1360 138 1412 103 1502 84" stroke-width="2.4" opacity="0.30"/>
+    <path d="M 1548 236 C 1592 286 1650 315 1742 324" stroke-width="2.2" opacity="0.28"/>
+    <path d="M 780 154 C 818 204 870 228 948 226" stroke-width="2.2" opacity="0.28"/>
+
+    <!-- Curvas de apoio, lembrando topografia/caminhos de tráfego -->
+    <path d="M 1480 -40 C 1398 72 1388 176 1454 268 C 1518 356 1630 392 1755 404" stroke-width="2.6" opacity="0.28"/>
+    <path d="M 1585 -54 C 1510 74 1504 160 1565 240 C 1628 321 1746 342 1970 358" stroke-width="2.3" opacity="0.22"/>
+    <path d="M 1710 -40 C 1650 52 1652 125 1718 195 C 1783 263 1885 282 2035 296" stroke-width="2" opacity="0.18"/>
+  </g>
+</svg>

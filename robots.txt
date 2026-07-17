@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://www.mtower.ind.br/sitemap.xml
