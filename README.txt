@@ -41,3 +41,5 @@ O BAT agora escolhe uma porta livre diferente a cada abertura. Isso evita que um
 AJUSTES DA VERSAO 3.2
 - Os botoes Campo, Tecnologia, Engenharia e Operacao agora trocam somente os textos da narrativa. O video continua reproduzindo do ponto atual e nao reinicia.
 - Os arcos/semicirculos dos cabecalhos de Solucoes, Sobre, Cases e Contato foram substituidos pelas linhas topograficas usadas nas secoes amarelas.
+
+Versão 3.4: vídeo no fundo do Hero e modelo 3D transferido para a narrativa Engenharia em Movimento.

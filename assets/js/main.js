@@ -76,6 +76,15 @@
 
 /* Home cinematográfica v3 */
 (() => {
+  const heroVideo = document.querySelector('[data-hero-video]');
+  if (heroVideo && 'IntersectionObserver' in window) {
+    const heroVideoObserver = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) heroVideo.play().catch(() => {});
+      else heroVideo.pause();
+    }, { threshold: 0.05 });
+    heroVideoObserver.observe(heroVideo);
+  }
+
   const cinema = document.querySelector('[data-cinema-story]');
   if (cinema) {
     const video = cinema.querySelector('video');

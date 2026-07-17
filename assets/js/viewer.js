@@ -9,13 +9,14 @@ if(stage){
   const probe=document.createElement('canvas');
   if(!(probe.getContext('webgl2')||probe.getContext('webgl'))) throw new Error('WebGL indisponível');
   const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const cinemaMode=stage.classList.contains('cinema-model-stage');
   const mobile=innerWidth<760||navigator.connection?.saveData;
   const url=mobile?'assets/models/mtower-equipment-mobile.glb':'assets/models/mtower-equipment-mid.glb';
   const renderer=new THREE.WebGLRenderer({antialias:!mobile,alpha:true,powerPreference:'high-performance'});
   renderer.setPixelRatio(Math.min(devicePixelRatio,mobile?1.25:1.7));renderer.setSize(stage.clientWidth,stage.clientHeight);renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.15;renderer.shadowMap.enabled=false;
   renderer.domElement.setAttribute('aria-label','Modelo 3D interativo de equipamento MTower. Arraste para girar.');renderer.domElement.tabIndex=0;stage.prepend(renderer.domElement);
   const scene=new THREE.Scene();
-  const camera=new THREE.PerspectiveCamera(31,stage.clientWidth/stage.clientHeight,.1,1000);camera.position.set(8,4.5,11);
+  const camera=new THREE.PerspectiveCamera(cinemaMode?29:31,stage.clientWidth/stage.clientHeight,.1,1000);camera.position.set(cinemaMode?8.4:8,cinemaMode?4.2:4.5,cinemaMode?10.4:11);
   const controls=new OrbitControls(camera,renderer.domElement);controls.enablePan=false;controls.enableZoom=false;controls.enableDamping=true;controls.dampingFactor=.06;controls.minPolarAngle=Math.PI*.28;controls.maxPolarAngle=Math.PI*.68;controls.target.set(0,.3,0);controls.autoRotate=!reduced;controls.autoRotateSpeed=.45;
   controls.addEventListener('start',()=>controls.autoRotate=false);
   scene.add(new THREE.HemisphereLight(0xdcecff,0x17191c,2.1));
@@ -26,7 +27,7 @@ if(stage){
   const loader=new GLTFLoader();loader.setMeshoptDecoder(MeshoptDecoder);
   let model,visible=true;
   loader.load(url,gltf=>{
-    model=gltf.scene;const box=new THREE.Box3().setFromObject(model);const size=box.getSize(new THREE.Vector3());const center=box.getCenter(new THREE.Vector3());model.position.sub(center);const max=Math.max(size.x,size.y,size.z);const scale=6.4/max;model.scale.setScalar(scale);model.rotation.y=-.6;model.position.y=-.2;
+    model=gltf.scene;const box=new THREE.Box3().setFromObject(model);const size=box.getSize(new THREE.Vector3());const center=box.getCenter(new THREE.Vector3());model.position.sub(center);const max=Math.max(size.x,size.y,size.z);const scale=(cinemaMode?7.15:6.4)/max;model.scale.setScalar(scale);model.rotation.y=-.6;model.position.y=cinemaMode?-.35:-.2;model.position.x=cinemaMode?.45:0;
     model.traverse(o=>{if(o.isMesh){o.material=o.material.clone();o.material.side=THREE.DoubleSide;o.material.metalness=Math.max(o.material.metalness??0,.25);o.material.roughness=Math.min(o.material.roughness??.65,.68);if(!reduced)o.material.wireframe=true}});
     scene.add(model);stage.classList.add('is-loaded');document.documentElement.classList.add('model-ready');
     if(!reduced)setTimeout(()=>model.traverse(o=>{if(o.isMesh)o.material.wireframe=false}),1100);
