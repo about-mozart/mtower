@@ -1,45 +1,34 @@
-MTOWER — SITE ESTÁTICO COMPLETO — VERSÃO CINEMATOGRÁFICA 3
+MTOWER — SITE ESTÁTICO COMPLETO — VERSÃO 3.6
 
 COMO VISUALIZAR NO WINDOWS
 1. Extraia todo o ZIP.
 2. Dê dois cliques em ABRIR SITE.bat.
-3. O navegador abrirá em http://localhost:8080.
-
-IMPORTANTE SOBRE O 3D
-Ao abrir index.html diretamente, o navegador pode bloquear arquivos GLB locais por segurança. Nessa situação, o Hero mostra a imagem de fundo normalmente, sem ficar preso em carregamento. Para ativar o equipamento 3D interativo, use ABRIR SITE.bat ou publique a pasta em uma hospedagem.
+3. O navegador abrirá usando uma porta local livre.
 
 PUBLICAÇÃO
-Envie todos os arquivos e pastas para a raiz da hospedagem. O site não depende de banco de dados, PHP ou framework.
+Envie todos os arquivos e pastas para a raiz da hospedagem ou do repositório. O site não depende de banco de dados, PHP ou framework. Na Vercel e na hospedagem não é necessário usar o BAT.
 
-HOME — VERSÃO 3
-- Hero com equipamento 3D e comunicação comercial limpa.
-- Filme institucional em largura total, com capítulos interativos e controle de som.
-- Bloco editorial de valor operacional.
-- Ecossistema MTower interativo, com cinco módulos e troca de imagem/conteúdo.
-- Jornada de engenharia com imagem fixa e etapas que mudam durante a rolagem.
-- Aplicações em campo com mídia real.
-- História institucional, cases e CTA com linhas topográficas.
+HOME
+- Vídeo institucional no fundo do Hero, com áudio controlado por interação.
+- Texto do Hero se recolhe ao explorar o vídeo em computadores.
+- Seção Engenharia em Movimento com modelos 3D interativos.
+- Campo usa o primeiro equipamento otimizado.
+- Operação usa o modelo 900-0248 otimizado para web.
+- Tecnologia e Engenharia já estão preparadas para receber modelos próprios; enquanto não forem fornecidos, usam o modelo de Campo.
+- Botão Ampliar 3D abre o equipamento em tela cheia.
+- Rotação por arraste, zoom e pan bloqueados.
+- Ecossistema MTower, processo de engenharia, aplicações, cases e CTA.
+
+ARQUIVOS 3D
+Os arquivos publicados receberam nomes neutros e não existem botões ou links de download na interface. O menu de contexto do canvas também foi bloqueado.
+
+IMPORTANTE: não existe proteção absoluta para um GLB entregue ao navegador. Uma pessoa com conhecimento técnico pode recuperar qualquer ativo recebido pelo navegador através da rede ou do cache. Para reduzir o risco, publique apenas modelos simplificados, sem medidas, metadados ou detalhes internos de fabricação. O modelo original de 446 MB não foi incluído.
 
 FORMULÁRIO
-O formulário prepara um e-mail para comercial@mtower.ind.br no aplicativo de e-mail do visitante. Para envio silencioso por API, integre o formulário a um serviço de backend ou automação.
-
-3D
-- Desktop: assets/models/mtower-equipment-mid.glb
-- Mobile/economia de dados: assets/models/mtower-equipment-mobile.glb
-- A versão original de 174 MB não foi incluída.
+O formulário prepara um e-mail para comercial@mtower.ind.br no aplicativo de e-mail do visitante. Para envio silencioso por API, integre o formulário a um backend ou automação.
 
 VÍDEO
 O vídeo institucional foi convertido para 720p e otimizado para web.
 
 FONTES
 Manrope para títulos, Inter para interface e textos e IBM Plex Mono para rótulos técnicos. As fontes são carregadas pelo Google Fonts; sem internet, o site utiliza fontes equivalentes do sistema.
-
-
-CORRECAO DO INICIADOR
-O BAT agora escolhe uma porta livre diferente a cada abertura. Isso evita que um servidor antigo na porta 8080 mostre uma versao anterior do site.
-
-AJUSTES DA VERSAO 3.2
-- Os botoes Campo, Tecnologia, Engenharia e Operacao agora trocam somente os textos da narrativa. O video continua reproduzindo do ponto atual e nao reinicia.
-- Os arcos/semicirculos dos cabecalhos de Solucoes, Sobre, Cases e Contato foram substituidos pelas linhas topograficas usadas nas secoes amarelas.
-
-Versão 3.4: vídeo no fundo do Hero e modelo 3D transferido para a narrativa Engenharia em Movimento.

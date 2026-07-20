@@ -133,6 +133,17 @@
     const description = cinema.querySelector('[data-cinema-description]');
     const cleanButton = cinema.querySelector('[data-cinema-clean]');
     const soundButton = cinema.querySelector('[data-cinema-sound]');
+    const expandButton = cinema.querySelector('[data-model-expand]');
+    const closeButton = cinema.querySelector('[data-model-close]');
+    const modelCaption = cinema.querySelector('[data-model-caption]');
+
+    const setExpanded = (expanded) => {
+      cinema.classList.toggle('is-model-expanded', expanded);
+      document.body.classList.toggle('model-viewer-open', expanded);
+      expandButton?.setAttribute('aria-expanded', String(expanded));
+      closeButton?.setAttribute('aria-hidden', String(!expanded));
+      window.setTimeout(() => window.dispatchEvent(new Event('resize')), 40);
+    };
 
     const activateChapter = (button) => {
       chapters.forEach((item) => {
@@ -144,12 +155,25 @@
       if (label) label.textContent = button.dataset.cinemaIndex || '';
       if (title) title.textContent = button.dataset.cinemaTitle || '';
       if (description) description.textContent = button.dataset.cinemaDescription || '';
-      // A troca de capítulo altera somente o conteúdo editorial.
-      // O vídeo continua do ponto atual, sem saltar, reiniciar ou interromper.
+      if (modelCaption) modelCaption.textContent = button.dataset.modelLabel || button.querySelector('span')?.textContent || 'Equipamento';
+
+      const modelKey = button.dataset.modelKey;
+      if (modelKey) {
+        const modelStage = cinema.querySelector('[data-model-stage]');
+        if (modelStage) modelStage.dataset.modelKey = modelKey;
+        if (window.mtowerModelViewer?.setModel) window.mtowerModelViewer.setModel(modelKey);
+        else document.dispatchEvent(new CustomEvent('mtower:model-change', { detail: { key: modelKey } }));
+      }
+
       window.setTimeout(() => cinema.classList.remove('is-updating'), 260);
     };
 
     chapters.forEach((button) => button.addEventListener('click', () => activateChapter(button)));
+    expandButton?.addEventListener('click', () => setExpanded(true));
+    closeButton?.addEventListener('click', () => setExpanded(false));
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && cinema.classList.contains('is-model-expanded')) setExpanded(false);
+    });
 
     cleanButton?.addEventListener('click', () => {
       const clean = !cinema.classList.contains('is-clean');

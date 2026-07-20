@@ -28,9 +28,11 @@
   </section>
 
   <section class="cinema-story-v3 cinema-model-story" data-cinema-story>
-    <div class="cinema-model-stage model-stage" data-model-stage aria-label="Modelo 3D interativo de um equipamento MTower. Arraste para girar.">
+    <div class="cinema-model-stage model-stage" data-model-stage data-model-key="campo" aria-label="Modelo 3D interativo de um equipamento MTower. Arraste para girar.">
       <div class="model-fallback"></div>
     </div>
+    <button class="model-expanded-close" type="button" data-model-close aria-hidden="true" aria-label="Fechar visualização ampliada">Fechar <span aria-hidden="true">×</span></button>
+    <div class="model-expanded-caption" aria-live="polite"><span>Visualização 3D</span><strong data-model-caption>Campo</strong></div>
     <div class="cinema-overlay"></div>
     <div class="container cinema-layout">
       <article class="cinema-copy reveal" data-cinema-copy>
@@ -40,14 +42,15 @@
         <p class="lead" data-cinema-description>A MTower leva sistemas móveis e autônomos aos pontos onde disponibilidade, segurança e resposta rápida são indispensáveis.</p>
         <div class="cinema-actions">
           <a class="btn btn-primary" href="sobre.html">Conhecer a MTower</a>
+          <button class="btn btn-outline cinema-expand-button" type="button" data-model-expand aria-expanded="false">Ampliar 3D</button>
           <span class="cinema-drag-hint"><i></i>Arraste o equipamento para explorar</span>
         </div>
       </article>
       <nav class="cinema-chapters" aria-label="Capítulos da engenharia MTower">
-        <button class="cinema-chapter active" type="button" data-cinema-time="10" data-cinema-index="01 / CAMPO" data-cinema-title="Onde a infraestrutura termina, a operação continua." data-cinema-description="A MTower leva sistemas móveis e autônomos aos pontos onde disponibilidade, segurança e resposta rápida são indispensáveis." aria-pressed="true"><b>01</b><span>Campo</span></button>
-        <button class="cinema-chapter" type="button" data-cinema-time="30" data-cinema-index="02 / TECNOLOGIA" data-cinema-title="Tecnologia aplicada ao que realmente precisa funcionar." data-cinema-description="Energia solar, iluminação, monitoramento e comunicação são combinados de acordo com a realidade de cada ambiente." aria-pressed="false"><b>02</b><span>Tecnologia</span></button>
-        <button class="cinema-chapter" type="button" data-cinema-time="55" data-cinema-index="03 / ENGENHARIA" data-cinema-title="Do projeto à fabricação, cada decisão tem uma função." data-cinema-description="Desenvolvimento, estrutura, integração e validação trabalham juntos para transformar necessidade operacional em solução." aria-pressed="false"><b>03</b><span>Engenharia</span></button>
-        <button class="cinema-chapter" type="button" data-cinema-time="85" data-cinema-index="04 / OPERAÇÃO" data-cinema-title="Equipamentos preparados para entrar em campo." data-cinema-description="Mobilidade, implantação organizada e suporte técnico ajudam a manter pessoas, ativos e operações em movimento." aria-pressed="false"><b>04</b><span>Operação</span></button>
+        <button class="cinema-chapter active" type="button" data-cinema-time="10" data-model-key="campo" data-model-label="Campo" data-cinema-index="01 / CAMPO" data-cinema-title="Onde a infraestrutura termina, a operação continua." data-cinema-description="A MTower leva sistemas móveis e autônomos aos pontos onde disponibilidade, segurança e resposta rápida são indispensáveis." aria-pressed="true"><b>01</b><span>Campo</span></button>
+        <button class="cinema-chapter" type="button" data-cinema-time="30" data-model-key="campo" data-model-label="Tecnologia" data-cinema-index="02 / TECNOLOGIA" data-cinema-title="Tecnologia aplicada ao que realmente precisa funcionar." data-cinema-description="Energia solar, iluminação, monitoramento e comunicação são combinados de acordo com a realidade de cada ambiente." aria-pressed="false"><b>02</b><span>Tecnologia</span></button>
+        <button class="cinema-chapter" type="button" data-cinema-time="55" data-model-key="campo" data-model-label="Engenharia" data-cinema-index="03 / ENGENHARIA" data-cinema-title="Do projeto à fabricação, cada decisão tem uma função." data-cinema-description="Desenvolvimento, estrutura, integração e validação trabalham juntos para transformar necessidade operacional em solução." aria-pressed="false"><b>03</b><span>Engenharia</span></button>
+        <button class="cinema-chapter" type="button" data-cinema-time="85" data-model-key="operacao" data-model-label="Operação" data-cinema-index="04 / OPERAÇÃO" data-cinema-title="Equipamentos preparados para entrar em campo." data-cinema-description="Mobilidade, implantação organizada e suporte técnico ajudam a manter pessoas, ativos e operações em movimento." aria-pressed="false"><b>04</b><span>Operação</span></button>
       </nav>
     </div>
     <div class="cinema-controls cinema-model-controls">
