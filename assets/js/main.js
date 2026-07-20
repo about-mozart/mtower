@@ -76,11 +76,50 @@
 
 /* Home cinematográfica v3 */
 (() => {
-  const heroVideo = document.querySelector('[data-hero-video]');
+  const hero = document.querySelector('[data-hero-story]');
+  const heroVideo = hero?.querySelector('[data-hero-video]');
+  const heroHover = hero?.querySelector('[data-hero-hover]');
+  const heroSound = hero?.querySelector('[data-hero-sound]');
+  const heroSoundLabel = heroSound?.querySelector('[data-hero-sound-label]');
+  const canHoverHero = window.matchMedia('(hover:hover) and (pointer:fine)').matches;
+  let heroSoundEnabled = false;
+  let heroExploring = false;
+
+  const updateHeroSound = () => {
+    if (!heroVideo) return;
+    heroVideo.muted = !heroSoundEnabled;
+    heroVideo.volume = heroSoundEnabled ? (canHoverHero ? (heroExploring ? 0.24 : 0.055) : 0.16) : 0;
+    heroSound?.setAttribute('aria-pressed', String(heroSoundEnabled));
+    heroSound?.classList.toggle('is-active', heroSoundEnabled);
+    if (heroSoundLabel) heroSoundLabel.textContent = heroSoundEnabled ? 'Som ativo' : 'Ativar som';
+  };
+
+  const setHeroExploring = (active) => {
+    if (!hero || !canHoverHero) return;
+    heroExploring = active;
+    hero.classList.toggle('is-exploring', active);
+    updateHeroSound();
+  };
+
+  heroHover?.addEventListener('pointerenter', () => setHeroExploring(true));
+  heroHover?.addEventListener('pointerleave', () => setHeroExploring(false));
+  hero?.addEventListener('pointerleave', () => setHeroExploring(false));
+
+  heroSound?.addEventListener('click', async () => {
+    if (!heroVideo) return;
+    heroSoundEnabled = !heroSoundEnabled;
+    updateHeroSound();
+    try { await heroVideo.play(); } catch (_) {}
+  });
+
   if (heroVideo && 'IntersectionObserver' in window) {
+    updateHeroSound();
     const heroVideoObserver = new IntersectionObserver(([entry]) => {
       if (entry.isIntersecting) heroVideo.play().catch(() => {});
-      else heroVideo.pause();
+      else {
+        heroVideo.pause();
+        setHeroExploring(false);
+      }
     }, { threshold: 0.05 });
     heroVideoObserver.observe(heroVideo);
   }
