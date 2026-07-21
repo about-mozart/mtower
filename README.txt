@@ -32,3 +32,10 @@ O vídeo institucional foi convertido para 720p e otimizado para web.
 
 FONTES
 Manrope para títulos, Inter para interface e textos e IBM Plex Mono para rótulos técnicos. As fontes são carregadas pelo Google Fonts; sem internet, o site utiliza fontes equivalentes do sistema.
+
+
+AJUSTE V3.7
+- Modelos carregados sem efeito wireframe.
+- Centralização feita em grupo externo, preservando a hierarquia interna CAD.
+- Modelo Operação reconvertido sem agrupamento destrutivo de peças.
+- Enquadramento recalculado ao trocar e ampliar o modelo.

@@ -142,6 +142,7 @@
       document.body.classList.toggle('model-viewer-open', expanded);
       expandButton?.setAttribute('aria-expanded', String(expanded));
       closeButton?.setAttribute('aria-hidden', String(!expanded));
+      document.dispatchEvent(new CustomEvent('mtower:model-expanded', { detail: { expanded } }));
       window.setTimeout(() => window.dispatchEvent(new Event('resize')), 40);
     };
 

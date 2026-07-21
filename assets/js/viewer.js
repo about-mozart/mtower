@@ -8,35 +8,30 @@ const stage = document.querySelector('[data-model-stage]');
 if (stage) {
   try {
     const probe = document.createElement('canvas');
-    if (!(probe.getContext('webgl2') || probe.getContext('webgl'))) {
-      throw new Error('WebGL indisponível');
-    }
+    if (!(probe.getContext('webgl2') || probe.getContext('webgl'))) throw new Error('WebGL indisponível');
 
     const decodePath = (value) => window.atob(value);
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     const mobile = window.innerWidth < 760 || Boolean(navigator.connection?.saveData);
 
-    /*
-      Os nomes dos arquivos são neutros e os caminhos não aparecem no HTML.
-      Isso reduz a exposição casual, mas qualquer arquivo entregue ao navegador
-      pode ser recuperado por uma pessoa com acesso às ferramentas de rede.
-    */
     const modelLibrary = {
       campo: {
         desktop: decodePath('YXNzZXRzL21vZGVscy9hOTFmMDdjNC5nbGI='),
         mobile: decodePath('YXNzZXRzL21vZGVscy9hOTFmMDdjNC1tLmdsYg=='),
         size: 7.15,
         rotationY: -0.6,
-        offsetX: 0.45,
-        offsetY: -0.35
+        offsetX: 0.35,
+        offsetY: -0.2,
+        camera: [1.05, 0.58, 1.35]
       },
       operacao: {
         desktop: decodePath('YXNzZXRzL21vZGVscy9mNGMyZDhhMS5nbGI='),
-        mobile: decodePath('YXNzZXRzL21vZGVscy9mNGMyZDhhMS1tLmdsYg=='),
-        size: 7.4,
-        rotationY: -0.42,
-        offsetX: 0.35,
-        offsetY: -0.35
+        mobile: decodePath('YXNzZXRzL21vZGVscy9mNGMyZDhhMS5nbGI='),
+        size: 8.2,
+        rotationY: -0.35,
+        offsetX: 0.2,
+        offsetY: 0,
+        camera: [1.15, 0.5, 1.45]
       }
     };
 
@@ -45,11 +40,11 @@ if (stage) {
       alpha: true,
       powerPreference: 'high-performance'
     });
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, mobile ? 1.25 : 1.7));
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, mobile ? 1.15 : 1.6));
     renderer.setSize(stage.clientWidth, stage.clientHeight);
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.15;
+    renderer.toneMappingExposure = 1.08;
     renderer.shadowMap.enabled = false;
     renderer.domElement.setAttribute('aria-label', 'Modelo 3D interativo de equipamento MTower. Arraste para girar.');
     renderer.domElement.tabIndex = 0;
@@ -58,37 +53,32 @@ if (stage) {
     stage.prepend(renderer.domElement);
 
     const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(29, stage.clientWidth / stage.clientHeight, 0.1, 1000);
-    camera.position.set(8.4, 4.2, 10.4);
+    const camera = new THREE.PerspectiveCamera(31, stage.clientWidth / stage.clientHeight, 0.01, 2000);
 
     const controls = new OrbitControls(camera, renderer.domElement);
     controls.enablePan = false;
     controls.enableZoom = false;
     controls.enableDamping = true;
-    controls.dampingFactor = 0.06;
-    controls.minPolarAngle = Math.PI * 0.28;
-    controls.maxPolarAngle = Math.PI * 0.68;
-    controls.target.set(0, 0.3, 0);
+    controls.dampingFactor = 0.065;
+    controls.minPolarAngle = Math.PI * 0.2;
+    controls.maxPolarAngle = Math.PI * 0.76;
     controls.autoRotate = !reduced;
-    controls.autoRotateSpeed = 0.45;
-    controls.addEventListener('start', () => {
-      controls.autoRotate = false;
-    });
+    controls.autoRotateSpeed = 0.35;
+    controls.addEventListener('start', () => { controls.autoRotate = false; });
 
-    scene.add(new THREE.HemisphereLight(0xdcecff, 0x17191c, 2.1));
-    const keyLight = new THREE.DirectionalLight(0xffffff, 4.5);
-    keyLight.position.set(6, 10, 8);
+    scene.add(new THREE.HemisphereLight(0xe7f0f7, 0x17191c, 2.25));
+    const keyLight = new THREE.DirectionalLight(0xffffff, 4.2);
+    keyLight.position.set(7, 11, 8);
     scene.add(keyLight);
-    const rimLight = new THREE.DirectionalLight(0xffc72c, 4);
-    rimLight.position.set(-8, 5, -5);
+    const rimLight = new THREE.DirectionalLight(0xffc72c, 2.25);
+    rimLight.position.set(-8, 5, -6);
     scene.add(rimLight);
-    const fillLight = new THREE.PointLight(0x9dd8f7, 6, 30);
-    fillLight.position.set(0, 2, 6);
+    const fillLight = new THREE.PointLight(0x9dd8f7, 3.5, 45);
+    fillLight.position.set(1, 3, 8);
     scene.add(fillLight);
 
-    const grid = new THREE.GridHelper(30, 30, 0x4c535a, 0x252a30);
-    grid.position.y = -2.45;
-    grid.material.opacity = 0.24;
+    const grid = new THREE.GridHelper(40, 40, 0x4c535a, 0x252a30);
+    grid.material.opacity = 0.2;
     grid.material.transparent = true;
     scene.add(grid);
 
@@ -102,28 +92,43 @@ if (stage) {
     let visible = true;
     let requestToken = 0;
 
-    const prepareModel = (root, key) => {
+    const prepareModel = (source, key) => {
       const config = modelLibrary[key];
-      const box = new THREE.Box3().setFromObject(root);
-      const size = box.getSize(new THREE.Vector3());
-      const center = box.getCenter(new THREE.Vector3());
-      root.position.sub(center);
-      const maximum = Math.max(size.x, size.y, size.z) || 1;
-      root.scale.setScalar(config.size / maximum);
-      root.rotation.y = config.rotationY;
-      root.position.x += config.offsetX;
-      root.position.y += config.offsetY;
+      source.updateMatrixWorld(true);
+      const sourceBox = new THREE.Box3().setFromObject(source);
+      const sourceSize = sourceBox.getSize(new THREE.Vector3());
+      const sourceCenter = sourceBox.getCenter(new THREE.Vector3());
+      const maximum = Math.max(sourceSize.x, sourceSize.y, sourceSize.z) || 1;
 
-      root.traverse((object) => {
+      /*
+        O modelo fica dentro de um grupo. Assim, centralização e escala são
+        aplicadas sem alterar a hierarquia interna da montagem CAD.
+      */
+      source.position.sub(sourceCenter);
+      const wrapper = new THREE.Group();
+      wrapper.add(source);
+      wrapper.scale.setScalar(config.size / maximum);
+      wrapper.rotation.y = config.rotationY;
+      wrapper.position.set(config.offsetX, config.offsetY, 0);
+
+      source.traverse((object) => {
         if (!object.isMesh) return;
-        object.material = object.material.clone();
-        object.material.side = THREE.DoubleSide;
-        object.material.metalness = Math.max(object.material.metalness ?? 0, 0.22);
-        object.material.roughness = Math.min(object.material.roughness ?? 0.65, 0.72);
-        if (!reduced) object.material.wireframe = true;
+        if (Array.isArray(object.material)) {
+          object.material = object.material.map((material) => {
+            const clone = material.clone();
+            clone.side = THREE.DoubleSide;
+            return clone;
+          });
+        } else if (object.material) {
+          object.material = object.material.clone();
+          object.material.side = THREE.DoubleSide;
+        }
+        object.frustumCulled = true;
       });
-      root.userData.modelKey = key;
-      return root;
+
+      wrapper.userData.modelKey = key;
+      wrapper.updateMatrixWorld(true);
+      return wrapper;
     };
 
     const getModel = (key) => {
@@ -137,10 +142,10 @@ if (stage) {
         loader.load(
           url,
           (gltf) => {
-            const root = prepareModel(gltf.scene, key);
-            cache.set(key, root);
+            const model = prepareModel(gltf.scene, key);
+            cache.set(key, model);
             pending.delete(key);
-            resolve(root);
+            resolve(model);
           },
           undefined,
           (error) => {
@@ -153,13 +158,29 @@ if (stage) {
       return promise;
     };
 
-    const revealSolid = (root) => {
-      if (reduced) return;
-      window.setTimeout(() => {
-        root.traverse((object) => {
-          if (object.isMesh) object.material.wireframe = false;
-        });
-      }, 850);
+    const fitView = (expanded = document.body.classList.contains('model-viewer-open')) => {
+      if (!currentModel) return;
+      currentModel.updateMatrixWorld(true);
+      const box = new THREE.Box3().setFromObject(currentModel);
+      const sphere = box.getBoundingSphere(new THREE.Sphere());
+      if (!Number.isFinite(sphere.radius) || sphere.radius <= 0) return;
+
+      const config = modelLibrary[currentKey];
+      const direction = new THREE.Vector3(...config.camera).normalize();
+      const verticalFov = THREE.MathUtils.degToRad(camera.fov);
+      const horizontalFov = 2 * Math.atan(Math.tan(verticalFov / 2) * Math.max(camera.aspect, 0.01));
+      const limitingFov = Math.min(verticalFov, horizontalFov);
+      const padding = expanded ? 1.12 : (mobile ? 1.38 : 1.24);
+      const distance = (sphere.radius / Math.sin(limitingFov / 2)) * padding;
+
+      controls.target.copy(sphere.center);
+      camera.position.copy(sphere.center).add(direction.multiplyScalar(distance));
+      camera.near = Math.max(distance / 250, 0.01);
+      camera.far = Math.max(distance * 30, 500);
+      camera.updateProjectionMatrix();
+      controls.update();
+
+      grid.position.y = box.min.y - Math.max(sphere.radius * 0.035, 0.08);
     };
 
     const setModel = async (key, options = {}) => {
@@ -168,7 +189,10 @@ if (stage) {
       const sameModel = currentModel && currentKey === key;
       currentKey = key;
       stage.dataset.modelKey = key;
-      if (sameModel) return;
+      if (sameModel) {
+        fitView();
+        return;
+      }
 
       stage.classList.add('is-switching');
       try {
@@ -180,8 +204,8 @@ if (stage) {
         stage.classList.add('is-loaded');
         stage.classList.remove('is-error');
         document.documentElement.classList.add('model-ready');
-        revealSolid(currentModel);
-        window.setTimeout(() => stage.classList.remove('is-switching'), options.instant ? 0 : 260);
+        fitView();
+        window.setTimeout(() => stage.classList.remove('is-switching'), options.instant ? 0 : 220);
       } catch (error) {
         console.error('Não foi possível carregar o modelo 3D:', error);
         stage.classList.remove('is-switching');
@@ -191,6 +215,7 @@ if (stage) {
 
     window.mtowerModelViewer = {
       setModel,
+      fitView,
       getCurrentModel: () => currentKey,
       hasModel: (key) => Boolean(modelLibrary[key])
     };
@@ -199,12 +224,11 @@ if (stage) {
       const key = event.detail?.key;
       if (key) setModel(key);
     });
-
-    setModel(currentKey, { instant: true }).then(() => {
-      const preload = () => getModel('operacao').catch(() => {});
-      if ('requestIdleCallback' in window) window.requestIdleCallback(preload, { timeout: 3500 });
-      else window.setTimeout(preload, 1800);
+    document.addEventListener('mtower:model-expanded', (event) => {
+      window.setTimeout(() => fitView(Boolean(event.detail?.expanded)), 80);
     });
+
+    setModel(currentKey, { instant: true });
 
     const observer = new IntersectionObserver((entries) => {
       visible = entries[0].isIntersecting;
@@ -215,11 +239,7 @@ if (stage) {
     const animate = (now) => {
       window.requestAnimationFrame(animate);
       if (!visible && !document.body.classList.contains('model-viewer-open')) return;
-      const delta = Math.min((now - last) / 1000, 0.04);
       last = now;
-      if (currentModel && !controls.autoRotate && !reduced) {
-        currentModel.rotation.y += Math.sin(now * 0.00025) * delta * 0.015;
-      }
       controls.update();
       renderer.render(scene, camera);
     };
