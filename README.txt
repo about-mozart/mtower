@@ -39,3 +39,9 @@ AJUSTE V3.7
 - Centralização feita em grupo externo, preservando a hierarquia interna CAD.
 - Modelo Operação reconvertido sem agrupamento destrutivo de peças.
 - Enquadramento recalculado ao trocar e ampliar o modelo.
+
+VERSÃO 3.8
+- Modelo de Operação reprocessado preservando a montagem original.
+- Orientação lateral fixa e eixo vertical corrigido.
+- Enquadramento calculado pelas dimensões projetadas, sem reduzir modelos longos.
+- Recentragem automática ao abrir e fechar a visualização ampliada.

@@ -8,7 +8,9 @@ const stage = document.querySelector('[data-model-stage]');
 if (stage) {
   try {
     const probe = document.createElement('canvas');
-    if (!(probe.getContext('webgl2') || probe.getContext('webgl'))) throw new Error('WebGL indisponível');
+    if (!(probe.getContext('webgl2') || probe.getContext('webgl'))) {
+      throw new Error('WebGL indisponível');
+    }
 
     const decodePath = (value) => window.atob(value);
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -19,19 +21,25 @@ if (stage) {
         desktop: decodePath('YXNzZXRzL21vZGVscy9hOTFmMDdjNC5nbGI='),
         mobile: decodePath('YXNzZXRzL21vZGVscy9hOTFmMDdjNC1tLmdsYg=='),
         size: 7.15,
-        rotationY: -0.6,
-        offsetX: 0.35,
-        offsetY: -0.2,
-        camera: [1.05, 0.58, 1.35]
+        rotation: [0, -0.6, 0],
+        offset: [0.35, -0.2, 0],
+        cameraDirection: [1.05, 0.58, 1.35],
+        padding: 1.12,
+        expandedPadding: 1.04
       },
       operacao: {
         desktop: decodePath('YXNzZXRzL21vZGVscy9mNGMyZDhhMS5nbGI='),
         mobile: decodePath('YXNzZXRzL21vZGVscy9mNGMyZDhhMS5nbGI='),
-        size: 8.2,
-        rotationY: -0.35,
-        offsetX: 0.2,
-        offsetY: 0,
-        camera: [1.15, 0.5, 1.45]
+        size: 10.2,
+        /*
+          O eixo longitudinal do conjunto exportado pelo SolidWorks é Z.
+          A rotação de 90° o coloca horizontalmente e mantém o eixo Y em pé.
+        */
+        rotation: [0, Math.PI / 2, 0],
+        offset: [0, -0.05, 0],
+        cameraDirection: [0.02, 0.04, 1],
+        padding: 1.08,
+        expandedPadding: 1.02
       }
     };
 
@@ -54,17 +62,17 @@ if (stage) {
 
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(31, stage.clientWidth / stage.clientHeight, 0.01, 2000);
+    camera.up.set(0, 1, 0);
 
     const controls = new OrbitControls(camera, renderer.domElement);
     controls.enablePan = false;
     controls.enableZoom = false;
     controls.enableDamping = true;
     controls.dampingFactor = 0.065;
-    controls.minPolarAngle = Math.PI * 0.2;
-    controls.maxPolarAngle = Math.PI * 0.76;
-    controls.autoRotate = !reduced;
-    controls.autoRotateSpeed = 0.35;
-    controls.addEventListener('start', () => { controls.autoRotate = false; });
+    controls.minPolarAngle = Math.PI * 0.16;
+    controls.maxPolarAngle = Math.PI * 0.84;
+    /* Mantém o enquadramento escolhido até que a pessoa interaja. */
+    controls.autoRotate = false;
 
     scene.add(new THREE.HemisphereLight(0xe7f0f7, 0x17191c, 2.25));
     const keyLight = new THREE.DirectionalLight(0xffffff, 4.2);
@@ -91,28 +99,43 @@ if (stage) {
     let currentKey = stage.dataset.modelKey || 'campo';
     let visible = true;
     let requestToken = 0;
+    let fitFrame = 0;
 
-    const prepareModel = (source, key) => {
+    const removeImportedCameras = (source) => {
+      const cameras = [];
+      source.traverse((object) => {
+        if (object.isCamera) cameras.push(object);
+      });
+      cameras.forEach((object) => object.parent?.remove(object));
+    };
+
+    const prepareModel = (gltf, key) => {
       const config = modelLibrary[key];
+      const source = gltf.scene;
+
+      removeImportedCameras(source);
       source.updateMatrixWorld(true);
-      const sourceBox = new THREE.Box3().setFromObject(source);
+
+      const sourceBox = new THREE.Box3().setFromObject(source, true);
       const sourceSize = sourceBox.getSize(new THREE.Vector3());
       const sourceCenter = sourceBox.getCenter(new THREE.Vector3());
       const maximum = Math.max(sourceSize.x, sourceSize.y, sourceSize.z) || 1;
 
       /*
-        O modelo fica dentro de um grupo. Assim, centralização e escala são
-        aplicadas sem alterar a hierarquia interna da montagem CAD.
+        A montagem permanece intacta. Somente o grupo externo recebe
+        centralização, escala e orientação para apresentação no site.
       */
       source.position.sub(sourceCenter);
+
       const wrapper = new THREE.Group();
       wrapper.add(source);
       wrapper.scale.setScalar(config.size / maximum);
-      wrapper.rotation.y = config.rotationY;
-      wrapper.position.set(config.offsetX, config.offsetY, 0);
+      wrapper.rotation.set(...config.rotation);
+      wrapper.position.set(...config.offset);
 
       source.traverse((object) => {
-        if (!object.isMesh) return;
+        if (!object.isMesh && !object.isInstancedMesh) return;
+
         if (Array.isArray(object.material)) {
           object.material = object.material.map((material) => {
             const clone = material.clone();
@@ -123,16 +146,21 @@ if (stage) {
           object.material = object.material.clone();
           object.material.side = THREE.DoubleSide;
         }
+
         object.frustumCulled = true;
       });
 
       wrapper.userData.modelKey = key;
+      wrapper.userData.homeRotation = wrapper.rotation.clone();
+      wrapper.userData.homePosition = wrapper.position.clone();
       wrapper.updateMatrixWorld(true);
       return wrapper;
     };
 
     const getModel = (key) => {
-      if (!modelLibrary[key]) return Promise.reject(new Error(`Modelo não configurado: ${key}`));
+      if (!modelLibrary[key]) {
+        return Promise.reject(new Error(`Modelo não configurado: ${key}`));
+      }
       if (cache.has(key)) return Promise.resolve(cache.get(key));
       if (pending.has(key)) return pending.get(key);
 
@@ -142,7 +170,7 @@ if (stage) {
         loader.load(
           url,
           (gltf) => {
-            const model = prepareModel(gltf.scene, key);
+            const model = prepareModel(gltf, key);
             cache.set(key, model);
             pending.delete(key);
             resolve(model);
@@ -154,43 +182,85 @@ if (stage) {
           }
         );
       });
+
       pending.set(key, promise);
       return promise;
     };
 
+    const getBoxCorners = (box) => {
+      const { min, max } = box;
+      return [
+        new THREE.Vector3(min.x, min.y, min.z),
+        new THREE.Vector3(min.x, min.y, max.z),
+        new THREE.Vector3(min.x, max.y, min.z),
+        new THREE.Vector3(min.x, max.y, max.z),
+        new THREE.Vector3(max.x, min.y, min.z),
+        new THREE.Vector3(max.x, min.y, max.z),
+        new THREE.Vector3(max.x, max.y, min.z),
+        new THREE.Vector3(max.x, max.y, max.z)
+      ];
+    };
+
     const fitView = (expanded = document.body.classList.contains('model-viewer-open')) => {
       if (!currentModel) return;
-      currentModel.updateMatrixWorld(true);
-      const box = new THREE.Box3().setFromObject(currentModel);
-      const sphere = box.getBoundingSphere(new THREE.Sphere());
-      if (!Number.isFinite(sphere.radius) || sphere.radius <= 0) return;
 
+      currentModel.updateMatrixWorld(true);
+      const box = new THREE.Box3().setFromObject(currentModel, true);
+      if (box.isEmpty()) return;
+
+      const center = box.getCenter(new THREE.Vector3());
       const config = modelLibrary[currentKey];
-      const direction = new THREE.Vector3(...config.camera).normalize();
+      const direction = new THREE.Vector3(...config.cameraDirection).normalize();
+      const worldUp = new THREE.Vector3(0, 1, 0);
+      const right = new THREE.Vector3().crossVectors(worldUp, direction);
+      if (right.lengthSq() < 0.0001) right.set(1, 0, 0);
+      right.normalize();
+      const up = new THREE.Vector3().crossVectors(direction, right).normalize();
+
+      let halfWidth = 0;
+      let halfHeight = 0;
+      let halfDepth = 0;
+      getBoxCorners(box).forEach((corner) => {
+        const relative = corner.sub(center);
+        halfWidth = Math.max(halfWidth, Math.abs(relative.dot(right)));
+        halfHeight = Math.max(halfHeight, Math.abs(relative.dot(up)));
+        halfDepth = Math.max(halfDepth, Math.abs(relative.dot(direction)));
+      });
+
       const verticalFov = THREE.MathUtils.degToRad(camera.fov);
       const horizontalFov = 2 * Math.atan(Math.tan(verticalFov / 2) * Math.max(camera.aspect, 0.01));
-      const limitingFov = Math.min(verticalFov, horizontalFov);
-      const padding = expanded ? 1.12 : (mobile ? 1.38 : 1.24);
-      const distance = (sphere.radius / Math.sin(limitingFov / 2)) * padding;
+      const padding = expanded ? config.expandedPadding : (mobile ? config.padding * 1.16 : config.padding);
+      const distanceForHeight = halfHeight / Math.max(Math.tan(verticalFov / 2), 0.001);
+      const distanceForWidth = halfWidth / Math.max(Math.tan(horizontalFov / 2), 0.001);
+      const distance = Math.max(distanceForHeight, distanceForWidth) * padding + halfDepth * 1.05;
 
-      controls.target.copy(sphere.center);
-      camera.position.copy(sphere.center).add(direction.multiplyScalar(distance));
-      camera.near = Math.max(distance / 250, 0.01);
-      camera.far = Math.max(distance * 30, 500);
+      camera.up.copy(up);
+      controls.target.copy(center);
+      camera.position.copy(center).add(direction.multiplyScalar(Math.max(distance, 0.5)));
+      camera.near = Math.max(distance / 300, 0.01);
+      camera.far = Math.max(distance * 25, 500);
       camera.updateProjectionMatrix();
       controls.update();
 
-      grid.position.y = box.min.y - Math.max(sphere.radius * 0.035, 0.08);
+      grid.position.y = box.min.y - Math.max((box.max.y - box.min.y) * 0.045, 0.08);
+      grid.rotation.set(0, 0, 0);
+    };
+
+    const queueFit = (expanded = document.body.classList.contains('model-viewer-open')) => {
+      window.cancelAnimationFrame(fitFrame);
+      fitFrame = window.requestAnimationFrame(() => fitView(expanded));
     };
 
     const setModel = async (key, options = {}) => {
       if (!modelLibrary[key]) return;
+
       const token = ++requestToken;
       const sameModel = currentModel && currentKey === key;
       currentKey = key;
       stage.dataset.modelKey = key;
+
       if (sameModel) {
-        fitView();
+        queueFit();
         return;
       }
 
@@ -198,13 +268,17 @@ if (stage) {
       try {
         const next = await getModel(key);
         if (token !== requestToken) return;
+
         if (currentModel) scene.remove(currentModel);
         currentModel = next;
         scene.add(currentModel);
+
         stage.classList.add('is-loaded');
         stage.classList.remove('is-error');
         document.documentElement.classList.add('model-ready');
-        fitView();
+
+        queueFit();
+        window.setTimeout(() => queueFit(), 120);
         window.setTimeout(() => stage.classList.remove('is-switching'), options.instant ? 0 : 220);
       } catch (error) {
         console.error('Não foi possível carregar o modelo 3D:', error);
@@ -224,8 +298,16 @@ if (stage) {
       const key = event.detail?.key;
       if (key) setModel(key);
     });
+
     document.addEventListener('mtower:model-expanded', (event) => {
-      window.setTimeout(() => fitView(Boolean(event.detail?.expanded)), 80);
+      const expanded = Boolean(event.detail?.expanded);
+      /*
+        A área muda de tamanho por transição CSS. Reenquadrar em etapas evita
+        que o modelo seja calculado com a dimensão antiga e fique pequeno ou fora do centro.
+      */
+      [40, 180, 380, 620].forEach((delay) => {
+        window.setTimeout(() => fitView(expanded), delay);
+      });
     });
 
     setModel(currentKey, { instant: true });
@@ -235,29 +317,34 @@ if (stage) {
     }, { threshold: 0.02 });
     observer.observe(stage);
 
-    let last = performance.now();
-    const animate = (now) => {
+    const animate = () => {
       window.requestAnimationFrame(animate);
       if (!visible && !document.body.classList.contains('model-viewer-open')) return;
-      last = now;
       controls.update();
       renderer.render(scene, camera);
     };
     window.requestAnimationFrame(animate);
 
+    let resizeTimer = 0;
     const resize = () => {
       const width = Math.max(stage.clientWidth, 1);
       const height = Math.max(stage.clientHeight, 1);
       camera.aspect = width / height;
       camera.updateProjectionMatrix();
       renderer.setSize(width, height, false);
+
+      window.clearTimeout(resizeTimer);
+      resizeTimer = window.setTimeout(() => {
+        if (currentModel) fitView();
+      }, 80);
     };
     new ResizeObserver(resize).observe(stage);
 
     renderer.domElement.addEventListener('keydown', (event) => {
       if (!currentModel) return;
-      if (event.key === 'ArrowLeft') currentModel.rotation.y -= 0.1;
-      if (event.key === 'ArrowRight') currentModel.rotation.y += 0.1;
+      if (event.key === 'ArrowLeft') camera.position.applyAxisAngle(new THREE.Vector3(0, 1, 0), -0.08);
+      if (event.key === 'ArrowRight') camera.position.applyAxisAngle(new THREE.Vector3(0, 1, 0), 0.08);
+      controls.update();
     });
   } catch (error) {
     console.warn('Fallback 3D ativado:', error);
