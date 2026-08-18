@@ -138,11 +138,15 @@
     const modelCaption = cinema.querySelector('[data-model-caption]');
 
     const setExpanded = (expanded) => {
+      const modelStage = cinema.querySelector('[data-model-stage]');
       cinema.classList.toggle('is-model-expanded', expanded);
       document.body.classList.toggle('model-viewer-open', expanded);
       expandButton?.setAttribute('aria-expanded', String(expanded));
       closeButton?.setAttribute('aria-hidden', String(!expanded));
-      document.dispatchEvent(new CustomEvent('mtower:model-expanded', { detail: { expanded } }));
+      modelStage?.setAttribute('aria-hidden', String(!expanded));
+      document.dispatchEvent(new CustomEvent('mtower:model-expanded', {
+        detail: { expanded, key: modelStage?.dataset.modelKey || '' }
+      }));
       window.setTimeout(() => window.dispatchEvent(new Event('resize')), 40);
     };
 
@@ -162,8 +166,15 @@
       if (modelKey) {
         const modelStage = cinema.querySelector('[data-model-stage]');
         if (modelStage) modelStage.dataset.modelKey = modelKey;
-        if (window.mtowerModelViewer?.setModel) window.mtowerModelViewer.setModel(modelKey);
-        else document.dispatchEvent(new CustomEvent('mtower:model-change', { detail: { key: modelKey } }));
+
+        /*
+          O modelo não é carregado nem exibido nesta seção.
+          Ele só é solicitado quando a visualização ampliada é aberta.
+        */
+        if (cinema.classList.contains('is-model-expanded')) {
+          if (window.mtowerModelViewer?.setModel) window.mtowerModelViewer.setModel(modelKey);
+          else document.dispatchEvent(new CustomEvent('mtower:model-change', { detail: { key: modelKey } }));
+        }
       }
 
       window.setTimeout(() => cinema.classList.remove('is-updating'), 260);

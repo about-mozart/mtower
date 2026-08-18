@@ -12,34 +12,65 @@ if (stage) {
       throw new Error('WebGL indisponível');
     }
 
-    const decodePath = (value) => window.atob(value);
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     const mobile = window.innerWidth < 760 || Boolean(navigator.connection?.saveData);
+    const status = stage.querySelector('[data-model-status]');
 
     const modelLibrary = {
       campo: {
-        desktop: decodePath('YXNzZXRzL21vZGVscy9hOTFmMDdjNC5nbGI='),
-        mobile: decodePath('YXNzZXRzL21vZGVscy9hOTFmMDdjNC1tLmdsYg=='),
-        size: 7.15,
-        rotation: [0, -0.6, 0],
-        offset: [0.35, -0.2, 0],
+        desktop: 'assets/models/FAST_SITE.glb',
+        mobile: 'assets/models/FAST_SITE.glb',
+        label: 'Campo',
+        size: 8,
+        rotation: [0, 0, 0],
+        offset: [0, 0, 0],
+        cameraDirection: [1.05, 0.58, 1.35],
+        padding: 1.12,
+        expandedPadding: 1.04
+      },
+      tecnologia: {
+        desktop: 'assets/models/TORRE_REPETIDORA_DE_SINAL.glb',
+        mobile: 'assets/models/TORRE_REPETIDORA_DE_SINAL.glb',
+        label: 'Tecnologia',
+        size: 8,
+        rotation: [0, 0, 0],
+        offset: [0, 0, 0],
+        cameraDirection: [1.05, 0.58, 1.35],
+        padding: 1.12,
+        expandedPadding: 1.04
+      },
+      engenharia: {
+        desktop: 'assets/models/MASTER.glb',
+        mobile: 'assets/models/MASTER.glb',
+        label: 'Engenharia',
+        size: 8,
+        rotation: [0, 0, 0],
+        offset: [0, 0, 0],
         cameraDirection: [1.05, 0.58, 1.35],
         padding: 1.12,
         expandedPadding: 1.04
       },
       operacao: {
-        desktop: decodePath('YXNzZXRzL21vZGVscy9mNGMyZDhhMS5nbGI='),
-        mobile: decodePath('YXNzZXRzL21vZGVscy9mNGMyZDhhMS5nbGI='),
-        size: 10.2,
-        /*
-          O eixo longitudinal do conjunto exportado pelo SolidWorks é Z.
-          A rotação de 90° o coloca horizontalmente e mantém o eixo Y em pé.
-        */
-        rotation: [0, Math.PI / 2, 0],
-        offset: [0, -0.05, 0],
-        cameraDirection: [0.02, 0.04, 1],
-        padding: 1.08,
-        expandedPadding: 1.02
+        desktop: 'assets/models/SHELTER_MULTIFUNCAO.glb',
+        mobile: 'assets/models/SHELTER_MULTIFUNCAO.glb',
+        label: 'Operação',
+        size: 8,
+        rotation: [0, 0, 0],
+        offset: [0, 0, 0],
+        cameraDirection: [1.05, 0.58, 1.35],
+        padding: 1.12,
+        expandedPadding: 1.04
+      },
+      seguranca: {
+        desktop: 'assets/models/SHELTER_BANHEIRO.glb',
+        mobile: 'assets/models/SHELTER_BANHEIRO.glb',
+        label: 'Segurança Operacional',
+        size: 8,
+        rotation: [0, 0, 0],
+        offset: [0, 0, 0],
+        cameraDirection: [1.05, 0.58, 1.35],
+        padding: 1.12,
+        expandedPadding: 1.04
       }
     };
 
@@ -166,11 +197,14 @@ if (stage) {
 
       const config = modelLibrary[key];
       const url = mobile ? config.mobile : config.desktop;
+      if (status) status.textContent = `Carregando ${config.label || 'modelo 3D'}...`;
+      stage.classList.remove('is-error');
       const promise = new Promise((resolve, reject) => {
         loader.load(
           url,
           (gltf) => {
             const model = prepareModel(gltf, key);
+            if (status) status.textContent = 'Visualização 3D pronta.';
             cache.set(key, model);
             pending.delete(key);
             resolve(model);
@@ -178,6 +212,10 @@ if (stage) {
           undefined,
           (error) => {
             pending.delete(key);
+            if (status) {
+              const fileName = url.split('/').pop();
+              status.textContent = `Não foi possível abrir ${fileName}. Confirme se o arquivo está em assets/models.`;
+            }
             reject(error);
           }
         );
@@ -301,6 +339,12 @@ if (stage) {
 
     document.addEventListener('mtower:model-expanded', (event) => {
       const expanded = Boolean(event.detail?.expanded);
+      const requestedKey = event.detail?.key || stage.dataset.modelKey || currentKey;
+
+      if (expanded) {
+        setModel(requestedKey, { instant: true });
+      }
+
       /*
         A área muda de tamanho por transição CSS. Reenquadrar em etapas evita
         que o modelo seja calculado com a dimensão antiga e fique pequeno ou fora do centro.
@@ -310,7 +354,13 @@ if (stage) {
       });
     });
 
-    setModel(currentKey, { instant: true });
+    /*
+      A home não carrega nenhum GLB automaticamente. O download e a renderização
+      acontecem apenas quando a pessoa clica em “Ampliar 3D”.
+    */
+    if (document.body.classList.contains('model-viewer-open')) {
+      setModel(currentKey, { instant: true });
+    }
 
     const observer = new IntersectionObserver((entries) => {
       visible = entries[0].isIntersecting;

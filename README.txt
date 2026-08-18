@@ -45,3 +45,10 @@ VERSÃO 3.8
 - Orientação lateral fixa e eixo vertical corrigido.
 - Enquadramento calculado pelas dimensões projetadas, sem reduzir modelos longos.
 - Recentragem automática ao abrir e fechar a visualização ampliada.
+
+V3.9 — Visualização 3D sob demanda
+- Removida a exibição do modelo 3D diretamente na seção "Engenharia em movimento".
+- O GLB é carregado somente ao clicar em "Ampliar 3D".
+- Cada capítulo agora possui um modelo 3D próprio.
+- Adicionado o capítulo 05 / Segurança Operacional.
+- Mapeamento dos modelos documentado em assets/models/LEIA-MODELOS-3D.txt.

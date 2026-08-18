@@ -1,0 +1,15 @@
+MTower — modelos 3D da seção "Engenharia em movimento"
+
+O site está configurado para carregar os GLBs somente quando o usuário clicar em "Ampliar 3D".
+
+Mapeamento atual:
+01 / Campo                 -> FAST_SITE.glb
+02 / Tecnologia            -> TORRE_REPETIDORA_DE_SINAL.glb
+03 / Engenharia            -> MASTER.glb
+04 / Operação              -> SHELTER_MULTIFUNCAO.glb
+05 / Segurança Operacional -> SHELTER_BANHEIRO.glb
+
+Os arquivos devem ficar exatamente nesta pasta:
+assets/models/
+
+Os nomes são sensíveis a maiúsculas/minúsculas em servidores Linux.

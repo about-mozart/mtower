@@ -632,3 +632,83 @@ body.model-viewer-open{overflow:hidden}
   .cinema-model-story.is-model-expanded .model-expanded-close{top:18px;right:18px}
   .cinema-model-story.is-model-expanded .model-expanded-caption{left:18px;bottom:18px}
 }
+
+/* V3.9 — 3D somente sob demanda + quinto eixo operacional */
+.cinema-model-story{
+  background:
+    radial-gradient(circle at 72% 42%,rgba(255,199,44,.075),transparent 24%),
+    linear-gradient(rgba(255,255,255,.018) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(255,255,255,.018) 1px,transparent 1px),
+    #050607;
+  background-size:auto,72px 72px,72px 72px,auto;
+}
+.cinema-model-stage{
+  opacity:0;
+  visibility:hidden;
+  pointer-events:none!important;
+}
+.cinema-model-stage .model-fallback{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:
+    radial-gradient(circle at 50% 46%,rgba(255,199,44,.08),transparent 26%),
+    linear-gradient(rgba(255,255,255,.025) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(255,255,255,.025) 1px,transparent 1px),
+    #050607;
+  background-size:auto,72px 72px,72px 72px,auto;
+  opacity:1;
+  filter:none;
+}
+.cinema-model-stage .model-fallback:after{display:none}
+.cinema-model-stage .model-fallback [data-model-status]{
+  position:relative;
+  z-index:2;
+  max-width:min(560px,80vw);
+  padding:16px 20px;
+  border-left:2px solid var(--yellow);
+  background:rgba(5,7,9,.72);
+  color:#c9d0d6;
+  font:500 11px/1.55 "IBM Plex Mono",monospace;
+  letter-spacing:.04em;
+  text-align:left;
+}
+.cinema-model-story .cinema-overlay{
+  background:
+    linear-gradient(90deg,rgba(5,7,9,.98) 0%,rgba(5,7,9,.88) 47%,rgba(5,7,9,.58) 72%,rgba(5,7,9,.74) 100%),
+    linear-gradient(0deg,rgba(5,7,9,.64),transparent 42%,rgba(5,7,9,.22));
+}
+.cinema-model-story .cinema-chapters{
+  background:rgba(5,7,9,.52);
+}
+.cinema-chapter span{line-height:1.25}
+.cinema-model-story.is-model-expanded .cinema-model-stage{
+  opacity:1;
+  visibility:visible;
+  pointer-events:auto!important;
+}
+.cinema-model-story.is-model-expanded .cinema-model-stage.is-loaded .model-fallback{
+  opacity:0;
+  visibility:hidden;
+}
+.cinema-model-story.is-model-expanded .cinema-model-stage.is-error .model-fallback{
+  opacity:1;
+  visibility:visible;
+}
+
+@media(max-width:820px){
+  .cinema-model-stage{
+    top:0;
+    right:0;
+    bottom:0;
+    left:0;
+    height:100%;
+  }
+  .cinema-model-story .cinema-chapters{
+    margin-top:65px;
+  }
+}
+
+@media(max-width:520px){
+  .cinema-model-story .cinema-chapters{margin-top:55px}
+}
