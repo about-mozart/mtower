@@ -8,83 +8,87 @@ const stage = document.querySelector('[data-model-stage]');
 
 if (stage) {
   try {
+
+    /* =========================================================
+       VERIFICA WEBGL
+    ========================================================= */
+
     const probe = document.createElement('canvas');
 
     if (!(probe.getContext('webgl2') || probe.getContext('webgl'))) {
       throw new Error('WebGL indisponível');
     }
 
-    const reduced = window.matchMedia(
-      '(prefers-reduced-motion: reduce)'
-    ).matches;
-
     const mobile =
       window.innerWidth < 760 ||
       Boolean(navigator.connection?.saveData);
 
-    const status = stage.querySelector('[data-model-status]');
+    const status =
+      stage.querySelector('[data-model-status]');
+
+
+    /* =========================================================
+       BIBLIOTECA DE MODELOS
+    ========================================================= */
 
     const modelLibrary = {
+
       campo: {
         desktop: 'assets/models/FAST_SITE.glb',
         mobile: 'assets/models/FAST_SITE.glb',
         label: 'Campo',
-        size: 8,
         rotation: [0, 0, 0],
-        offset: [0, 0, 0],
         cameraDirection: [1.05, 0.58, 1.35],
-        padding: 1.12,
-        expandedPadding: 1.04
+        padding: 1.10,
+        expandedPadding: 1.02
       },
 
       tecnologia: {
         desktop: 'assets/models/TORRE_REPETIDORA_DE_SINAL.glb',
         mobile: 'assets/models/TORRE_REPETIDORA_DE_SINAL.glb',
         label: 'Tecnologia',
-        size: 8,
         rotation: [0, 0, 0],
-        offset: [0, 0, 0],
         cameraDirection: [1.05, 0.58, 1.35],
-        padding: 1.12,
-        expandedPadding: 1.04
+        padding: 1.10,
+        expandedPadding: 1.02
       },
 
       engenharia: {
         desktop: 'assets/models/MASTER.glb',
         mobile: 'assets/models/MASTER.glb',
         label: 'Engenharia',
-        size: 8,
         rotation: [0, 0, 0],
-        offset: [0, 0, 0],
         cameraDirection: [1.05, 0.58, 1.35],
-        padding: 1.12,
-        expandedPadding: 1.04
+        padding: 1.10,
+        expandedPadding: 1.02
       },
 
       operacao: {
         desktop: 'assets/models/SHELTER_MULTIFUNCAO.glb',
         mobile: 'assets/models/SHELTER_MULTIFUNCAO.glb',
         label: 'Operação',
-        size: 8,
         rotation: [0, 0, 0],
-        offset: [0, 0, 0],
         cameraDirection: [1.05, 0.58, 1.35],
-        padding: 1.12,
-        expandedPadding: 1.04
+        padding: 1.10,
+        expandedPadding: 1.02
       },
 
       seguranca: {
         desktop: 'assets/models/SHELTER_BANHEIRO.glb',
         mobile: 'assets/models/SHELTER_BANHEIRO.glb',
         label: 'Segurança Operacional',
-        size: 8,
         rotation: [0, 0, 0],
-        offset: [0, 0, 0],
         cameraDirection: [1.05, 0.58, 1.35],
-        padding: 1.12,
-        expandedPadding: 1.04
+        padding: 1.10,
+        expandedPadding: 1.02
       }
+
     };
+
+
+    /* =========================================================
+       RENDERER
+    ========================================================= */
 
     const renderer = new THREE.WebGLRenderer({
       antialias: !mobile,
@@ -100,8 +104,8 @@ if (stage) {
     );
 
     renderer.setSize(
-      stage.clientWidth,
-      stage.clientHeight
+      Math.max(stage.clientWidth, 1),
+      Math.max(stage.clientHeight, 1)
     );
 
     renderer.outputColorSpace =
@@ -123,28 +127,39 @@ if (stage) {
 
     renderer.domElement.addEventListener(
       'contextmenu',
-      (event) => event.preventDefault()
+      event => event.preventDefault()
     );
 
     renderer.domElement.addEventListener(
       'dragstart',
-      (event) => event.preventDefault()
+      event => event.preventDefault()
     );
 
     stage.prepend(renderer.domElement);
 
-    const scene = new THREE.Scene();
+
+    /* =========================================================
+       CENA E CÂMERA
+    ========================================================= */
+
+    const scene =
+      new THREE.Scene();
 
     const camera =
       new THREE.PerspectiveCamera(
         31,
-        stage.clientWidth /
-          stage.clientHeight,
-        0.01,
-        2000
+        Math.max(stage.clientWidth, 1) /
+        Math.max(stage.clientHeight, 1),
+        0.001,
+        100000
       );
 
     camera.up.set(0, 1, 0);
+
+
+    /* =========================================================
+       CONTROLES
+    ========================================================= */
 
     const controls =
       new OrbitControls(
@@ -153,25 +168,36 @@ if (stage) {
       );
 
     controls.enablePan = false;
-    controls.enableZoom = false;
+
+    /*
+     * Deixei zoom habilitado.
+     * Assim podemos inspecionar o equipamento
+     * depois que ele abrir.
+     */
+    controls.enableZoom = true;
+
     controls.enableDamping = true;
     controls.dampingFactor = 0.065;
 
-    controls.minPolarAngle =
-      Math.PI * 0.16;
-
-    controls.maxPolarAngle =
-      Math.PI * 0.84;
+    controls.minDistance = 0.01;
+    controls.maxDistance = 10000;
 
     controls.autoRotate = false;
 
-    scene.add(
+
+    /* =========================================================
+       ILUMINAÇÃO
+    ========================================================= */
+
+    const hemisphere =
       new THREE.HemisphereLight(
         0xe7f0f7,
         0x17191c,
         2.25
-      )
-    );
+      );
+
+    scene.add(hemisphere);
+
 
     const keyLight =
       new THREE.DirectionalLight(
@@ -187,6 +213,7 @@ if (stage) {
 
     scene.add(keyLight);
 
+
     const rimLight =
       new THREE.DirectionalLight(
         0xffc72c,
@@ -201,11 +228,12 @@ if (stage) {
 
     scene.add(rimLight);
 
+
     const fillLight =
       new THREE.PointLight(
         0x9dd8f7,
         3.5,
-        45
+        100
       );
 
     fillLight.position.set(
@@ -216,6 +244,11 @@ if (stage) {
 
     scene.add(fillLight);
 
+
+    /* =========================================================
+       GRID
+    ========================================================= */
+
     const grid =
       new THREE.GridHelper(
         40,
@@ -224,33 +257,29 @@ if (stage) {
         0x252a30
       );
 
-    grid.material.opacity = 0.2;
+    grid.material.opacity = 0.20;
     grid.material.transparent = true;
 
     scene.add(grid);
 
-    /*
-     * ========================================================
-     * GLTF LOADER
-     * ========================================================
-     */
+
+    /* =========================================================
+       GLTF / GLB LOADER
+    ========================================================= */
 
     const loader =
       new GLTFLoader();
 
-    /*
-     * Meshopt
-     */
+
+    /* Meshopt */
+
     loader.setMeshoptDecoder(
       MeshoptDecoder
     );
 
-    /*
-     * Draco
-     *
-     * Necessário para os GLBs
-     * exportados com compressão Draco.
-     */
+
+    /* Draco */
+
     const dracoLoader =
       new DRACOLoader();
 
@@ -268,11 +297,10 @@ if (stage) {
       dracoLoader
     );
 
-    /*
-     * ========================================================
-     * CACHE
-     * ========================================================
-     */
+
+    /* =========================================================
+       ESTADO
+    ========================================================= */
 
     const cache = new Map();
     const pending = new Map();
@@ -284,47 +312,27 @@ if (stage) {
       'campo';
 
     let visible = true;
+
     let requestToken = 0;
+
     let fitFrame = 0;
 
-    /*
-     * ========================================================
-     * REMOVE CÂMERAS IMPORTADAS
-     * ========================================================
-     */
 
-    const removeImportedCameras =
-      (source) => {
+    /* =========================================================
+       PREPARA O MODELO
 
-        const cameras = [];
+       IMPORTANTE:
 
-        source.traverse(
-          (object) => {
+       NÃO alteramos mais:
+       - posição das peças
+       - posição do gltf.scene
+       - escala individual
+       - rotação individual
+       - transformações dos nós
 
-            if (object.isCamera) {
-              cameras.push(object);
-            }
-
-          }
-        );
-
-        cameras.forEach(
-          (object) => {
-
-            object.parent?.remove(
-              object
-            );
-
-          }
-        );
-
-      };
-
-    /*
-     * ========================================================
-     * PREPARA MODELO
-     * ========================================================
-     */
+       A montagem original permanece exatamente
+       como foi exportada no GLB.
+    ========================================================= */
 
     const prepareModel =
       (gltf, key) => {
@@ -335,114 +343,72 @@ if (stage) {
         const source =
           gltf.scene;
 
-        removeImportedCameras(
-          source
-        );
+        /*
+         * Não tocar nas transformações internas.
+         */
 
-        source.updateMatrixWorld(
-          true
-        );
+        source.updateMatrixWorld(true);
 
-        const sourceBox =
-          new THREE.Box3()
-            .setFromObject(
-              source,
-              true
-            );
-
-        const sourceSize =
-          sourceBox.getSize(
-            new THREE.Vector3()
-          );
-
-        const sourceCenter =
-          sourceBox.getCenter(
-            new THREE.Vector3()
-          );
-
-        const maximum =
-          Math.max(
-            sourceSize.x,
-            sourceSize.y,
-            sourceSize.z
-          ) || 1;
 
         /*
-         * Centraliza o modelo
+         * Wrapper externo.
+         *
+         * O GLB inteiro vira UM objeto para
+         * apresentação no site.
          */
-        source.position.sub(
-          sourceCenter
-        );
 
         const wrapper =
           new THREE.Group();
 
         wrapper.add(source);
 
-        wrapper.scale.setScalar(
-          config.size /
-          maximum
-        );
-
         wrapper.rotation.set(
           ...config.rotation
         );
 
-        wrapper.position.set(
-          ...config.offset
-        );
+        /*
+         * Neste momento não alteramos
+         * nenhuma posição da montagem.
+         */
+
+        wrapper.updateMatrixWorld(true);
+
+
+        /* ===============================================
+           CENTRALIZA SOMENTE O WRAPPER
+        =============================================== */
+
+        let box =
+          new THREE.Box3().setFromObject(
+            wrapper,
+            true
+          );
+
+        if (!box.isEmpty()) {
+
+          const center =
+            box.getCenter(
+              new THREE.Vector3()
+            );
+
+          /*
+           * Move o CONJUNTO COMPLETO.
+           *
+           * Nenhuma peça interna é movida.
+           */
+
+          wrapper.position.sub(
+            center
+          );
+
+        }
+
+        wrapper.updateMatrixWorld(true);
+
 
         /*
-         * Ajusta materiais
+         * Guarda referência.
          */
-        source.traverse(
-          (object) => {
-
-            if (
-              !object.isMesh &&
-              !object.isInstancedMesh
-            ) {
-              return;
-            }
-
-            if (
-              Array.isArray(
-                object.material
-              )
-            ) {
-
-              object.material =
-                object.material.map(
-                  (material) => {
-
-                    const clone =
-                      material.clone();
-
-                    clone.side =
-                      THREE.DoubleSide;
-
-                    return clone;
-
-                  }
-                );
-
-            } else if (
-              object.material
-            ) {
-
-              object.material =
-                object.material.clone();
-
-              object.material.side =
-                THREE.DoubleSide;
-
-            }
-
-            object.frustumCulled =
-              true;
-
-          }
-        );
 
         wrapper.userData.modelKey =
           key;
@@ -453,26 +419,29 @@ if (stage) {
         wrapper.userData.homePosition =
           wrapper.position.clone();
 
-        wrapper.updateMatrixWorld(
-          true
-        );
+
+        /*
+         * NÃO clonamos materiais.
+         * NÃO alteramos meshes.
+         * NÃO alteramos nós.
+         *
+         * Isso ajuda a preservar exatamente
+         * a estrutura criada pelo Composer.
+         */
 
         return wrapper;
 
       };
 
-    /*
-     * ========================================================
-     * CARREGAMENTO
-     * ========================================================
-     */
+
+    /* =========================================================
+       CARREGA MODELO
+    ========================================================= */
 
     const getModel =
-      (key) => {
+      key => {
 
-        if (
-          !modelLibrary[key]
-        ) {
+        if (!modelLibrary[key]) {
 
           return Promise.reject(
             new Error(
@@ -482,9 +451,8 @@ if (stage) {
 
         }
 
-        if (
-          cache.has(key)
-        ) {
+
+        if (cache.has(key)) {
 
           return Promise.resolve(
             cache.get(key)
@@ -492,34 +460,36 @@ if (stage) {
 
         }
 
-        if (
-          pending.has(key)
-        ) {
 
-          return pending.get(
-            key
-          );
+        if (pending.has(key)) {
+
+          return pending.get(key);
 
         }
 
+
         const config =
           modelLibrary[key];
+
 
         const url =
           mobile
             ? config.mobile
             : config.desktop;
 
+
         if (status) {
 
           status.textContent =
-            `Carregando ${config.label || 'modelo 3D'}...`;
+            `Carregando ${config.label}...`;
 
         }
+
 
         stage.classList.remove(
           'is-error'
         );
+
 
         const promise =
           new Promise(
@@ -529,88 +499,136 @@ if (stage) {
 
                 url,
 
-                /*
-                 * SUCESSO
-                 */
-                (gltf) => {
 
-                  const model =
-                    prepareModel(
-                      gltf,
+                /* ===============================
+                   SUCESSO
+                =============================== */
+
+                gltf => {
+
+                  try {
+
+                    const model =
+                      prepareModel(
+                        gltf,
+                        key
+                      );
+
+
+                    cache.set(
+                      key,
+                      model
+                    );
+
+
+                    pending.delete(
                       key
                     );
 
-                  if (status) {
 
-                    status.textContent =
-                      'Visualização 3D pronta.';
+                    if (status) {
+
+                      status.textContent =
+                        'Visualização 3D pronta.';
+
+                    }
+
+
+                    resolve(
+                      model
+                    );
+
+                  } catch (error) {
+
+                    pending.delete(
+                      key
+                    );
+
+                    reject(
+                      error
+                    );
 
                   }
 
-                  cache.set(
-                    key,
-                    model
-                  );
-
-                  pending.delete(
-                    key
-                  );
-
-                  resolve(
-                    model
-                  );
-
                 },
 
-                /*
-                 * PROGRESSO
-                 */
-                (xhr) => {
 
-                  if (
-                    !status ||
-                    !xhr.total
-                  ) {
+                /* ===============================
+                   PROGRESSO
+                =============================== */
+
+                xhr => {
+
+                  if (!status) {
                     return;
                   }
 
-                  const percent =
-                    Math.round(
+
+                  if (
+                    xhr.lengthComputable &&
+                    xhr.total > 0
+                  ) {
+
+                    const percent =
+                      Math.min(
+                        100,
+                        Math.round(
+                          (
+                            xhr.loaded /
+                            xhr.total
+                          ) * 100
+                        )
+                      );
+
+
+                    status.textContent =
+                      `Carregando ${config.label}: ${percent}%`;
+
+                  } else {
+
+                    const mb =
                       (
                         xhr.loaded /
-                        xhr.total
-                      ) * 100
-                    );
+                        1024 /
+                        1024
+                      ).toFixed(1);
 
-                  status.textContent =
-                    `Carregando ${config.label}: ${percent}%`;
+
+                    status.textContent =
+                      `Carregando ${config.label}: ${mb} MB`;
+
+                  }
 
                 },
 
-                /*
-                 * ERRO
-                 */
-                (error) => {
+
+                /* ===============================
+                   ERRO
+                =============================== */
+
+                error => {
 
                   pending.delete(
                     key
                   );
+
 
                   const fileName =
                     url
                       .split('/')
                       .pop();
 
+
                   console.error(
-                    'Erro ao carregar GLB:',
+                    'Erro ao carregar modelo 3D:',
                     {
-                      arquivo:
-                        fileName,
+                      modelo: key,
+                      arquivo: fileName,
                       url,
-                      erro:
-                        error
+                      error
                     }
                   );
+
 
                   if (status) {
 
@@ -618,6 +636,7 @@ if (stage) {
                       `Não foi possível abrir ${fileName}.`;
 
                   }
+
 
                   reject(
                     error
@@ -630,283 +649,122 @@ if (stage) {
             }
           );
 
+
         pending.set(
           key,
           promise
         );
 
+
         return promise;
 
       };
 
-    /*
-     * ========================================================
-     * CANTOS DO BOUNDING BOX
-     * ========================================================
-     */
 
-    const getBoxCorners =
-      (box) => {
-
-        const {
-          min,
-          max
-        } = box;
-
-        return [
-
-          new THREE.Vector3(
-            min.x,
-            min.y,
-            min.z
-          ),
-
-          new THREE.Vector3(
-            min.x,
-            min.y,
-            max.z
-          ),
-
-          new THREE.Vector3(
-            min.x,
-            max.y,
-            min.z
-          ),
-
-          new THREE.Vector3(
-            min.x,
-            max.y,
-            max.z
-          ),
-
-          new THREE.Vector3(
-            max.x,
-            min.y,
-            min.z
-          ),
-
-          new THREE.Vector3(
-            max.x,
-            min.y,
-            max.z
-          ),
-
-          new THREE.Vector3(
-            max.x,
-            max.y,
-            min.z
-          ),
-
-          new THREE.Vector3(
-            max.x,
-            max.y,
-            max.z
-          )
-
-        ];
-
-      };
-
-    /*
-     * ========================================================
-     * ENQUADRAMENTO
-     * ========================================================
-     */
+    /* =========================================================
+       ENQUADRAMENTO AUTOMÁTICO
+    ========================================================= */
 
     const fitView =
       (
         expanded =
-          document.body.classList
-            .contains(
-              'model-viewer-open'
-            )
+          document.body.classList.contains(
+            'model-viewer-open'
+          )
       ) => {
 
-        if (
-          !currentModel
-        ) {
+        if (!currentModel) {
           return;
         }
 
-        currentModel
-          .updateMatrixWorld(
+
+        currentModel.updateMatrixWorld(
+          true
+        );
+
+
+        const box =
+          new THREE.Box3().setFromObject(
+            currentModel,
             true
           );
 
-        const box =
-          new THREE.Box3()
-            .setFromObject(
-              currentModel,
-              true
-            );
 
-        if (
-          box.isEmpty()
-        ) {
+        if (box.isEmpty()) {
           return;
         }
+
+
+        const size =
+          box.getSize(
+            new THREE.Vector3()
+          );
+
 
         const center =
           box.getCenter(
             new THREE.Vector3()
           );
 
+
         const config =
           modelLibrary[
             currentKey
           ];
 
-        const direction =
-          new THREE.Vector3(
-            ...config.cameraDirection
-          ).normalize();
 
-        const worldUp =
-          new THREE.Vector3(
-            0,
-            1,
-            0
+        /*
+         * Maior dimensão REAL da montagem.
+         */
+
+        const maxDimension =
+          Math.max(
+            size.x,
+            size.y,
+            size.z
           );
 
-        const right =
-          new THREE.Vector3()
-            .crossVectors(
-              worldUp,
-              direction
-            );
 
-        if (
-          right.lengthSq() <
-          0.0001
-        ) {
-
-          right.set(
-            1,
-            0,
-            0
-          );
-
-        }
-
-        right.normalize();
-
-        const up =
-          new THREE.Vector3()
-            .crossVectors(
-              direction,
-              right
-            )
-            .normalize();
-
-        let halfWidth = 0;
-        let halfHeight = 0;
-        let halfDepth = 0;
-
-        getBoxCorners(
-          box
-        ).forEach(
-          (corner) => {
-
-            const relative =
-              corner.sub(
-                center
-              );
-
-            halfWidth =
-              Math.max(
-                halfWidth,
-                Math.abs(
-                  relative.dot(
-                    right
-                  )
-                )
-              );
-
-            halfHeight =
-              Math.max(
-                halfHeight,
-                Math.abs(
-                  relative.dot(
-                    up
-                  )
-                )
-              );
-
-            halfDepth =
-              Math.max(
-                halfDepth,
-                Math.abs(
-                  relative.dot(
-                    direction
-                  )
-                )
-              );
-
-          }
-        );
+        /*
+         * Calcula a distância usando o FOV.
+         */
 
         const verticalFov =
           THREE.MathUtils.degToRad(
             camera.fov
           );
 
-        const horizontalFov =
-          2 *
-          Math.atan(
+
+        let distance =
+          maxDimension /
+          (
+            2 *
             Math.tan(
               verticalFov / 2
-            ) *
-            Math.max(
-              camera.aspect,
-              0.01
             )
           );
+
 
         const padding =
           expanded
             ? config.expandedPadding
-            : (
-                mobile
-                  ? config.padding *
-                    1.16
-                  : config.padding
-              );
+            : config.padding;
 
-        const distanceForHeight =
-          halfHeight /
-          Math.max(
-            Math.tan(
-              verticalFov / 2
-            ),
-            0.001
-          );
 
-        const distanceForWidth =
-          halfWidth /
-          Math.max(
-            Math.tan(
-              horizontalFov /
-              2
-            ),
-            0.001
-          );
+        distance *=
+          padding * 1.15;
 
-        const distance =
-          Math.max(
-            distanceForHeight,
-            distanceForWidth
-          ) *
-            padding +
-          halfDepth *
-            1.05;
 
-        camera.up.copy(
-          up
-        );
+        const direction =
+          new THREE.Vector3(
+            ...config.cameraDirection
+          ).normalize();
+
 
         controls.target.copy(
           center
         );
+
 
         camera.position
           .copy(
@@ -916,82 +774,124 @@ if (stage) {
             direction.multiplyScalar(
               Math.max(
                 distance,
-                0.5
+                0.1
               )
             )
           );
 
+
+        /*
+         * Near/Far calculados com base
+         * no equipamento.
+         */
+
         camera.near =
           Math.max(
-            distance /
-              300,
-            0.01
+            maxDimension /
+            10000,
+            0.001
           );
+
 
         camera.far =
           Math.max(
-            distance *
-              25,
-            500
+            distance * 100,
+            maxDimension * 100,
+            1000
           );
+
 
         camera.updateProjectionMatrix();
 
-        controls.update();
 
-        grid.position.y =
-          box.min.y -
+        /*
+         * Limites do zoom.
+         */
+
+        controls.minDistance =
           Math.max(
-            (
-              box.max.y -
-              box.min.y
-            ) *
-              0.045,
-            0.08
+            maxDimension * 0.02,
+            0.01
           );
 
-        grid.rotation.set(
-          0,
-          0,
-          0
+
+        controls.maxDistance =
+          Math.max(
+            maxDimension * 20,
+            distance * 10
+          );
+
+
+        controls.update();
+
+
+        /* ===============================================
+           GRID ABAIXO DO EQUIPAMENTO
+        =============================================== */
+
+        grid.position.set(
+          center.x,
+          box.min.y -
+          Math.max(
+            size.y * 0.03,
+            maxDimension * 0.005
+          ),
+          center.z
+        );
+
+
+        /*
+         * Ajusta tamanho visual do grid.
+         */
+
+        const gridScale =
+          Math.max(
+            maxDimension / 20,
+            0.1
+          );
+
+
+        grid.scale.setScalar(
+          gridScale
         );
 
       };
 
-    /*
-     * ========================================================
-     * QUEUE FIT
-     * ========================================================
-     */
+
+    /* =========================================================
+       REENQUADRAR
+    ========================================================= */
 
     const queueFit =
       (
         expanded =
-          document.body.classList
-            .contains(
-              'model-viewer-open'
-            )
+          document.body.classList.contains(
+            'model-viewer-open'
+          )
       ) => {
 
-        window.cancelAnimationFrame(
+        cancelAnimationFrame(
           fitFrame
         );
 
+
         fitFrame =
-          window.requestAnimationFrame(
-            () =>
+          requestAnimationFrame(
+            () => {
+
               fitView(
                 expanded
-              )
+              );
+
+            }
           );
 
       };
 
-    /*
-     * ========================================================
-     * TROCA MODELO
-     * ========================================================
-     */
+
+    /* =========================================================
+       DEFINE MODELO ATUAL
+    ========================================================= */
 
     const setModel =
       async (
@@ -999,29 +899,29 @@ if (stage) {
         options = {}
       ) => {
 
-        if (
-          !modelLibrary[key]
-        ) {
+        if (!modelLibrary[key]) {
           return;
         }
+
 
         const token =
           ++requestToken;
 
+
         const sameModel =
           currentModel &&
-          currentKey ===
-            key;
+          currentKey === key;
+
 
         currentKey =
           key;
 
+
         stage.dataset.modelKey =
           key;
 
-        if (
-          sameModel
-        ) {
+
+        if (sameModel) {
 
           queueFit();
 
@@ -1029,9 +929,11 @@ if (stage) {
 
         }
 
+
         stage.classList.add(
           'is-switching'
         );
+
 
         try {
 
@@ -1040,16 +942,15 @@ if (stage) {
               key
             );
 
+
           if (
-            token !==
-            requestToken
+            token !== requestToken
           ) {
             return;
           }
 
-          if (
-            currentModel
-          ) {
+
+          if (currentModel) {
 
             scene.remove(
               currentModel
@@ -1057,61 +958,100 @@ if (stage) {
 
           }
 
+
           currentModel =
             next;
+
 
           scene.add(
             currentModel
           );
 
+
+          currentModel.updateMatrixWorld(
+            true
+          );
+
+
           stage.classList.add(
             'is-loaded'
           );
 
+
           stage.classList.remove(
             'is-error'
           );
+
 
           document.documentElement
             .classList.add(
               'model-ready'
             );
 
-          queueFit();
 
-          window.setTimeout(
-            () =>
-              queueFit(),
-            120
+          queueFit(
+            true
           );
 
-          window.setTimeout(
-            () =>
-              stage.classList
-                .remove(
-                  'is-switching'
-                ),
+
+          /*
+           * Como o painel abre através de
+           * transição CSS, recalculamos algumas vezes.
+           */
+
+          [
+            80,
+            250,
+            500,
+            800
+          ].forEach(
+            delay => {
+
+              setTimeout(
+                () => {
+
+                  fitView(
+                    document.body.classList.contains(
+                      'model-viewer-open'
+                    )
+                  );
+
+                },
+                delay
+              );
+
+            }
+          );
+
+
+          setTimeout(
+            () => {
+
+              stage.classList.remove(
+                'is-switching'
+              );
+
+            },
             options.instant
               ? 0
               : 220
           );
 
-        } catch (
-          error
-        ) {
+
+        } catch (error) {
 
           console.error(
             'Não foi possível carregar o modelo 3D:',
             error
           );
 
+
           stage.classList.remove(
             'is-switching'
           );
 
-          if (
-            !currentModel
-          ) {
+
+          if (!currentModel) {
 
             stage.classList.add(
               'is-error'
@@ -1123,11 +1063,10 @@ if (stage) {
 
       };
 
-    /*
-     * ========================================================
-     * API GLOBAL
-     * ========================================================
-     */
+
+    /* =========================================================
+       API GLOBAL
+    ========================================================= */
 
     window.mtowerModelViewer = {
 
@@ -1136,66 +1075,74 @@ if (stage) {
       fitView,
 
       getCurrentModel:
-        () =>
-          currentKey,
+        () => currentKey,
 
       hasModel:
-        (key) =>
+        key =>
           Boolean(
             modelLibrary[key]
           )
 
     };
 
-    /*
-     * ========================================================
-     * EVENTO TROCA DE MODELO
-     * ========================================================
-     */
+
+    /* =========================================================
+       TROCA DE CAPÍTULO
+    ========================================================= */
 
     document.addEventListener(
       'mtower:model-change',
-      (event) => {
+      event => {
 
         const key =
           event.detail?.key;
 
-        if (key) {
 
-          setModel(
-            key
-          );
+        /*
+         * Não baixa o GLB aqui.
+         *
+         * Apenas registra qual equipamento
+         * deverá abrir quando clicar em Ampliar 3D.
+         */
+
+        if (
+          key &&
+          modelLibrary[key]
+        ) {
+
+          currentKey =
+            key;
+
+          stage.dataset.modelKey =
+            key;
 
         }
 
       }
     );
 
-    /*
-     * ========================================================
-     * EVENTO EXPANDIR
-     * ========================================================
-     */
+
+    /* =========================================================
+       ABRIR / FECHAR 3D
+    ========================================================= */
 
     document.addEventListener(
       'mtower:model-expanded',
-      (event) => {
+      event => {
 
         const expanded =
           Boolean(
-            event.detail
-              ?.expanded
+            event.detail?.expanded
           );
+
 
         const requestedKey =
           event.detail?.key ||
-          stage.dataset
-            .modelKey ||
+          stage.dataset.modelKey ||
           currentKey;
 
-        if (
-          expanded
-        ) {
+
+        if (expanded) {
 
           setModel(
             requestedKey,
@@ -1206,19 +1153,27 @@ if (stage) {
 
         }
 
+
         [
           40,
           180,
           380,
           620
         ].forEach(
-          (delay) => {
+          delay => {
 
-            window.setTimeout(
-              () =>
-                fitView(
-                  expanded
-                ),
+            setTimeout(
+              () => {
+
+                if (currentModel) {
+
+                  fitView(
+                    expanded
+                  );
+
+                }
+
+              },
               delay
             );
 
@@ -1228,38 +1183,14 @@ if (stage) {
       }
     );
 
-    /*
-     * Não carrega nenhum modelo
-     * automaticamente na Home.
-     *
-     * Só carrega quando o modo
-     * ampliado é aberto.
-     */
-    if (
-      document.body.classList
-        .contains(
-          'model-viewer-open'
-        )
-    ) {
 
-      setModel(
-        currentKey,
-        {
-          instant: true
-        }
-      );
-
-    }
-
-    /*
-     * ========================================================
-     * VISIBILIDADE
-     * ========================================================
-     */
+    /* =========================================================
+       OBSERVADOR DE VISIBILIDADE
+    ========================================================= */
 
     const observer =
       new IntersectionObserver(
-        (entries) => {
+        entries => {
 
           visible =
             entries[0]
@@ -1271,35 +1202,36 @@ if (stage) {
         }
       );
 
+
     observer.observe(
       stage
     );
 
-    /*
-     * ========================================================
-     * ANIMAÇÃO
-     * ========================================================
-     */
+
+    /* =========================================================
+       LOOP DE RENDER
+    ========================================================= */
 
     const animate =
       () => {
 
-        window.requestAnimationFrame(
+        requestAnimationFrame(
           animate
         );
 
+
         if (
           !visible &&
-          !document.body
-            .classList
-            .contains(
-              'model-viewer-open'
-            )
+          !document.body.classList.contains(
+            'model-viewer-open'
+          )
         ) {
           return;
         }
 
+
         controls.update();
+
 
         renderer.render(
           scene,
@@ -1308,17 +1240,18 @@ if (stage) {
 
       };
 
-    window.requestAnimationFrame(
+
+    requestAnimationFrame(
       animate
     );
 
-    /*
-     * ========================================================
-     * RESIZE
-     * ========================================================
-     */
+
+    /* =========================================================
+       RESIZE
+    ========================================================= */
 
     let resizeTimer = 0;
+
 
     const resize =
       () => {
@@ -1329,17 +1262,20 @@ if (stage) {
             1
           );
 
+
         const height =
           Math.max(
             stage.clientHeight,
             1
           );
 
+
         camera.aspect =
-          width /
-          height;
+          width / height;
+
 
         camera.updateProjectionMatrix();
+
 
         renderer.setSize(
           width,
@@ -1347,27 +1283,32 @@ if (stage) {
           false
         );
 
-        window.clearTimeout(
+
+        clearTimeout(
           resizeTimer
         );
 
+
         resizeTimer =
-          window.setTimeout(
+          setTimeout(
             () => {
 
-              if (
-                currentModel
-              ) {
+              if (currentModel) {
 
-                fitView();
+                fitView(
+                  document.body.classList.contains(
+                    'model-viewer-open'
+                  )
+                );
 
               }
 
             },
-            80
+            100
           );
 
       };
+
 
     new ResizeObserver(
       resize
@@ -1375,61 +1316,69 @@ if (stage) {
       stage
     );
 
-    /*
-     * ========================================================
-     * TECLADO
-     * ========================================================
-     */
 
-    renderer.domElement
-      .addEventListener(
-        'keydown',
-        (event) => {
+    /* =========================================================
+       TECLADO
+    ========================================================= */
 
-          if (
-            !currentModel
-          ) {
-            return;
-          }
+    renderer.domElement.addEventListener(
+      'keydown',
+      event => {
 
-          if (
-            event.key ===
-            'ArrowLeft'
-          ) {
+        if (!currentModel) {
+          return;
+        }
 
-            camera.position
-              .applyAxisAngle(
-                new THREE.Vector3(
-                  0,
-                  1,
-                  0
-                ),
-                -0.08
-              );
 
-          }
+        const center =
+          controls.target;
 
-          if (
-            event.key ===
-            'ArrowRight'
-          ) {
 
-            camera.position
-              .applyAxisAngle(
-                new THREE.Vector3(
-                  0,
-                  1,
-                  0
-                ),
-                0.08
-              );
+        const axis =
+          new THREE.Vector3(
+            0,
+            1,
+            0
+          );
 
-          }
 
-          controls.update();
+        if (
+          event.key ===
+          'ArrowLeft'
+        ) {
+
+          camera.position
+            .sub(center)
+            .applyAxisAngle(
+              axis,
+              -0.08
+            )
+            .add(center);
 
         }
-      );
+
+
+        if (
+          event.key ===
+          'ArrowRight'
+        ) {
+
+          camera.position
+            .sub(center)
+            .applyAxisAngle(
+              axis,
+              0.08
+            )
+            .add(center);
+
+        }
+
+
+        controls.update();
+
+      }
+    );
+
 
   } catch (error) {
 
@@ -1437,6 +1386,7 @@ if (stage) {
       'Fallback 3D ativado:',
       error
     );
+
 
     stage.classList.add(
       'is-error'
